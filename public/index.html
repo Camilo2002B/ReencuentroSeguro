@@ -1,0 +1,1044 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Reencuentro Seguro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Concepto: app móvil de barrio. Verde café como base, tres colores de señal fijos por tipo de reporte
+   (perdida = rojo, encontrada = azul, avistamiento = violeta). Navegación inferior, tarjetas planas con línea fina. */
+:root{
+  --bg:#F2F6F3; --surface:#FFFFFF; --surface-2:#E7EEE9; --ink:#10231D; --ink-2:#4B6058; --line:#D2DCD6;
+  --brand:#0B6B52; --brand-ink:#FFFFFF; --brand-soft:#D5EAE1;
+  --lost:#B93626; --lost-soft:#F8DCD6; --found:#1F5FA8; --found-soft:#D8E6F6; --seen:#6F44AB; --seen-soft:#E7DCF4;
+  --warn:#8A5700; --warn-soft:#FAEBC9; --ok:#1B7338; --ok-soft:#D8EFDE;
+  --shadow:0 1px 2px rgba(16,35,29,.08),0 10px 28px rgba(16,35,29,.06);
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1411; --surface:#13201B; --surface-2:#1B2C25; --ink:#E6F0EB; --ink-2:#9FB4AA; --line:#28413A;
+    --brand:#3FC79F; --brand-ink:#05251B; --brand-soft:#17392F;
+    --lost:#FF8E7C; --lost-soft:#401E19; --found:#80B6F3; --found-soft:#152B46; --seen:#C3A0F2; --seen-soft:#2B2042;
+    --warn:#F2B84B; --warn-soft:#3B2D10; --ok:#72D590; --ok-soft:#14341F;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1411; --surface:#13201B; --surface-2:#1B2C25; --ink:#E6F0EB; --ink-2:#9FB4AA; --line:#28413A;
+  --brand:#3FC79F; --brand-ink:#05251B; --brand-soft:#17392F;
+  --lost:#FF8E7C; --lost-soft:#401E19; --found:#80B6F3; --found-soft:#152B46; --seen:#C3A0F2; --seen-soft:#2B2042;
+  --warn:#F2B84B; --warn-soft:#3B2D10; --ok:#72D590; --ok-soft:#14341F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-body);
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1.45rem} h3{font-size:1.1rem}
+p{margin:0}
+a{color:var(--brand)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:6px}
+.shell{max-width:720px;margin:0 auto;padding-bottom:104px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{min-width:0}
+.sp{flex:1}
+.muted{color:var(--ink-2)} .small{font-size:.85rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* barra superior */
+.top{display:flex;align-items:center;gap:12px;padding:16px 0 8px}
+.logo{width:40px;height:40px;flex:none}
+.brand{font-family:var(--font-display);font-weight:800;font-size:1.2rem;letter-spacing:.02em;line-height:1}
+.brand small{display:block;font-family:var(--font-body);font-weight:500;font-size:.75rem;letter-spacing:0;color:var(--ink-2);margin-top:4px}
+
+/* navegación inferior */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabbar nav{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;color:var(--ink-2);text-decoration:none;font-size:.72rem;font-weight:500;position:relative}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--brand);background:var(--brand-soft)}
+.tab.pub{color:var(--brand-ink);background:var(--brand);font-weight:600}
+.tab.pub[aria-current="page"]{outline:2px solid var(--ink);outline-offset:-2px}
+.badge-n{position:absolute;top:2px;right:calc(50% - 20px);min-width:18px;height:18px;border-radius:9px;background:var(--lost);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+
+/* componentes */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.card.flat{box-shadow:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border-radius:12px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);font-weight:600;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.danger{background:transparent;color:var(--lost);border-color:var(--lost)}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:.88rem;border-radius:10px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.pill.lost{background:var(--lost-soft);color:var(--lost)} .pill.found{background:var(--found-soft);color:var(--found)} .pill.seen{background:var(--seen-soft);color:var(--seen)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.ok{background:var(--ok-soft);color:var(--ok)}
+.notice{border-radius:12px;padding:12px 14px;background:var(--warn-soft);color:var(--ink);border:1px solid var(--line);font-size:.9rem}
+.notice.info{background:var(--found-soft)} .notice.good{background:var(--ok-soft)} .notice.bad{background:var(--lost-soft)}
+.notice b{font-weight:600}
+
+.hero{background:var(--brand);color:var(--brand-ink);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.hero h1{font-size:1.65rem;font-weight:800}
+.hero p{opacity:.92}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick a{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:10px 4px;border-radius:12px;background:rgba(255,255,255,.16);color:inherit;text-decoration:none;font-weight:600;font-size:.82rem;border:1px solid rgba(255,255,255,.28)}
+.quick a:hover{background:rgba(255,255,255,.26)}
+.quick svg{width:26px;height:26px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .quick a{background:rgba(0,0,0,.18);border-color:rgba(0,0,0,.3)}}
+:root[data-theme="dark"] .quick a{background:rgba(0,0,0,.18);border-color:rgba(0,0,0,.3)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat b{display:block;font-family:var(--font-display);font-size:1.6rem;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--ink-2)}
+
+.filters{display:flex;flex-direction:column;gap:10px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 13px;font-size:.88rem;cursor:pointer;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field>label,.lbl{font-size:.84rem;font-weight:600}
+.field .hint{font-size:.78rem;color:var(--ink-2)}
+input[type=text],input[type=tel],input[type=date],input[type=time],input[type=search],select,textarea{width:100%;min-height:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{min-height:92px;resize:vertical}
+select{appearance:auto}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--brand)}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+legend{padding:0;font-size:.84rem;font-weight:600;margin-bottom:6px}
+.tipo-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tipo-opts label{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:12px 6px;border:2px solid var(--line);border-radius:14px;cursor:pointer;font-weight:600;font-size:.84rem;background:var(--surface)}
+.tipo-opts input{position:absolute;opacity:0;pointer-events:none}
+.tipo-opts label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
+.tipo-opts label:has(input:focus-visible){outline:3px solid var(--brand);outline-offset:2px}
+.tipo-opts svg{width:28px;height:28px}
+
+/* lista de reportes */
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:grid;grid-template-columns:76px 1fr;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;text-decoration:none;color:inherit}
+.item:hover{border-color:var(--brand)}
+.item .ph{width:76px;height:76px;border-radius:12px;overflow:hidden;background:var(--surface-2);display:block}
+.item .ph img,.item .ph svg{width:100%;height:100%;object-fit:cover;display:block}
+.item h3{font-size:1rem}
+.item .meta{font-size:.82rem;color:var(--ink-2)}
+.item .txt{font-size:.88rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.empty{text-align:center;padding:28px 16px;color:var(--ink-2)}
+.empty svg{width:56px;height:56px;margin-bottom:8px;color:var(--ink-2)}
+
+/* detalle */
+.detail-ph{width:100%;aspect-ratio:4/3;max-height:340px;border-radius:16px;overflow:hidden;background:var(--surface-2)}
+.detail-ph img,.detail-ph svg{width:100%;height:100%;object-fit:cover;display:block}
+.dl{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:.92rem;margin:0}
+.dl dt{color:var(--ink-2)} .dl dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.tl li{position:relative;padding:0 0 14px 22px;font-size:.9rem}
+.tl li::before{content:"";position:absolute;left:5px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--brand)}
+.tl li::after{content:"";position:absolute;left:9px;top:18px;bottom:-2px;width:2px;background:var(--line)}
+.tl li:last-child::after{display:none}
+.tl time{display:block;font-size:.78rem;color:var(--ink-2)}
+.match{display:flex;gap:10px;align-items:center;padding:10px;border:1px dashed var(--line);border-radius:12px;text-decoration:none;color:inherit}
+.match .ph{width:52px;height:52px;border-radius:10px;overflow:hidden;background:var(--surface-2);flex:none}
+.match .ph svg,.match .ph img{width:100%;height:100%;object-fit:cover}
+
+/* mapa por zonas */
+.zmap{display:grid;grid-template-columns:1fr 1.2fr 1fr;grid-template-areas:". norte ." "occ centro ori" ". sur .";gap:8px}
+.zone{border:1px solid var(--line);border-radius:18px;padding:12px 8px;min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--ink);background:var(--surface)}
+.zone b{font-family:var(--font-display);font-size:1rem}
+.zone .n{font-size:1.9rem;font-family:var(--font-display);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.zone .dots{display:flex;gap:8px;font-size:.78rem;font-variant-numeric:tabular-nums}
+.d{display:inline-flex;align-items:center;gap:3px}
+.d::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.d.lost{color:var(--lost)} .d.found{color:var(--found)} .d.seen{color:var(--seen)}
+.z-norte{grid-area:norte}.z-occ{grid-area:occ}.z-centro{grid-area:centro}.z-ori{grid-area:ori}.z-sur{grid-area:sur}
+
+/* panel y métricas */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:130px 1fr 28px;gap:8px;align-items:center;font-size:.84rem}
+.bar i{display:block;height:12px;border-radius:6px;background:var(--brand)}
+.bar .tr{background:var(--surface-2);border-radius:6px;overflow:hidden}
+.subtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.subtabs .chip{flex:none}
+.scale{display:flex;gap:6px}
+.scale label{flex:1;text-align:center;border:1px solid var(--line);border-radius:10px;padding:8px 0;cursor:pointer;background:var(--surface);font-weight:600}
+.scale input{position:absolute;opacity:0;pointer-events:none}
+.scale label:has(input:checked){background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.scale label:has(input:focus-visible){outline:3px solid var(--brand);outline-offset:2px}
+.menu{display:flex;flex-direction:column}
+.menu a{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--line);color:inherit;text-decoration:none;font-weight:500}
+.menu a:last-child{border-bottom:0}
+.menu svg{width:22px;height:22px;color:var(--brand);flex:none}
+.photo-prev{max-width:180px;border-radius:12px;display:block;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.9rem;z-index:30;max-width:min(92vw,520px);box-shadow:var(--shadow)}
+ul.clean{margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:6px}
+.scroll-x{overflow-x:auto}
+@media (max-width:420px){.dl{grid-template-columns:92px 1fr}.bar{grid-template-columns:100px 1fr 26px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+#auth-screen{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;padding:20px}
+.auth-card{width:min(100%,430px);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+</style>
+
+<div class="shell">
+  <header class="top">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="13" fill="var(--brand)"/><path d="M24 38c-6-4.5-10-8-10-12.2 0-3 2.3-5.3 5.2-5.3 2 0 3.9 1.1 4.8 2.9.9-1.8 2.8-2.9 4.8-2.9 2.9 0 5.2 2.3 5.2 5.3C34 30 30 33.500 24 38z" fill="var(--brand-ink)"/><circle cx="14" cy="14" r="3.3" fill="var(--brand-ink)"/><circle cx="21" cy="9.5" r="3.3" fill="var(--brand-ink)"/><circle cx="29" cy="9.5" r="3.3" fill="var(--brand-ink)"/><circle cx="36" cy="14" r="3.3" fill="var(--brand-ink)"/></svg>
+    <div class="brand">REENCUENTRO SEGURO<small>Mascotas perdidas y encontradas · Armenia, Quindío</small></div>
+  </header>
+  <main id="view" aria-live="polite"></main>
+</div>
+<div class="tabbar"><nav id="nav" aria-label="Principal"></nav></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- constantes ---------- */
+var SECTORES=['Centro','Norte','Sur','Oriente','Occidente'];
+var MUNICIPIOS=['Armenia','Calarcá','La Tebaida','Montenegro','Circasia','Quimbaya','Salento','Filandia','Pijao','Génova','Córdoba','Buenavista'];
+var COLORES={negro:['Negro','#2E2E2E'],blanco:['Blanco','#F2F2EE'],cafe:['Café','#8A5A2E'],beige:['Beige o crema','#D8B88A'],gris:['Gris','#9AA1A6'],naranja:['Naranja o atigrado','#DF8B3B'],manchado:['Manchado (varios colores)','#EDEBE4']};
+var COLOR_CORTO={negro:'negro',blanco:'blanco',cafe:'café',beige:'beige',gris:'gris',naranja:'naranja',manchado:'manchado'};
+var TAMANOS={pequeno:'Pequeño',mediano:'Mediano',grande:'Grande'};
+var ESTADOS={nuevo:'Nuevo',en_busqueda:'En búsqueda',avistamiento:'Avistamiento reportado',resguardo:'Encontrada, en resguardo',reunido:'Reunido con su familia',cerrado:'Cerrado'};
+var ESTADOS_POR_TIPO={perdida:['nuevo','en_busqueda','avistamiento','resguardo','reunido','cerrado'],encontrada:['nuevo','resguardo','reunido','cerrado']};
+var INACTIVOS=['reunido','cerrado'];
+var TIPOS={perdida:'Perdida',encontrada:'Encontrada',avistamiento:'Avistamiento'};
+var TIPO_CLASE={perdida:'lost',encontrada:'found',avistamiento:'seen'};
+
+/* ---------- utilidades ---------- */
+function $(s,r){return (r||document).querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function nid(){var a='abcdefghijkmnpqrstuvwxyz23456789',s='',r=crypto.getRandomValues(new Uint8Array(10));for(var i=0;i<r.length;i++)s+=a[r[i]%a.length];return s}
+function nowISO(){return new Date().toISOString()}
+function hoy(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function pad(n){return String(n).padStart(2,'0')}
+function LSget(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function LSset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function fechaLarga(iso){try{return new Date(iso).toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'})}catch(e){return iso}}
+function fechaDia(f){if(!f)return '';var p=f.split('-');if(p.length<3)return f;try{return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'})}catch(e){return f}}
+function rel(iso){var t=Date.parse(iso);if(isNaN(t))return '';var m=Math.round((Date.now()-t)/60000);if(m<2)return 'hace un momento';if(m<60)return 'hace '+m+' min';var h=Math.round(m/60);if(h<24)return 'hace '+h+' h';var d=Math.round(h/24);if(d<31)return 'hace '+d+(d===1?' día':' días');return fechaLarga(iso)}
+function evTs(it){var t=Date.parse((it.fecha||hoy())+'T'+(it.hora||'12:00'));return isNaN(t)?Date.parse(it.creadoEn)||0:t}
+function digits(s){return String(s||'').replace(/\D/g,'')}
+function telOk(s){var d=digits(s);return (d.length===10&&d[0]==='3')||(d.length===12&&d.slice(0,2)==='57')}
+function telWa(s){var d=digits(s);return d.length===10?'57'+d:d}
+function fotoOk(s){return typeof s==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(s)&&s.length<400000}
+function especieL(e){return e==='gato'?'Gato':'Perro'}
+function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+
+/* ---------- datos de ejemplo (solo demostración) ---------- */
+var DEMO=[
+ {k:'caso',id:'ej01',tipo:'perdida',especie:'perro',nombre:'Max',color:'cafe',tamano:'mediano',senas:'Collar verde y mancha blanca en el pecho. Atiende por Max.',municipio:'Armenia',sector:'Centro',barrio:'Cerca de la Plaza de Bolívar',dias:2,estado:'en_busqueda',hist:[[2,'nuevo','Reporte publicado'],[1,'en_busqueda','La familia recorre el sector']]},
+ {k:'caso',id:'ej02',tipo:'perdida',especie:'gato',nombre:'Nube',color:'gris',tamano:'pequeno',senas:'Ojos verdes, sin collar, muy asustadizo.',municipio:'Armenia',sector:'Norte',barrio:'Sector Avenida Bolívar',dias:4,estado:'avistamiento',hist:[[4,'nuevo','Reporte publicado'],[2,'avistamiento','Avistamiento reportado por un vecino']]},
+ {k:'caso',id:'ej03',tipo:'encontrada',especie:'perro',nombre:'',color:'negro',tamano:'grande',senas:'Collar rojo sin placa. Está sano y tranquilo.',municipio:'Armenia',sector:'Sur',barrio:'Cerca de un parque del sector',dias:1,estado:'resguardo',hist:[[1,'resguardo','Resguardado en casa de quien lo encontró']]},
+ {k:'caso',id:'ej04',tipo:'perdida',especie:'perro',nombre:'Canela',color:'beige',tamano:'pequeno',senas:'Criolla pequeña, orejas caídas, llevaba una camiseta azul.',municipio:'Armenia',sector:'Oriente',barrio:'',dias:6,estado:'nuevo',hist:[[6,'nuevo','Reporte publicado']]},
+ {k:'caso',id:'ej05',tipo:'encontrada',especie:'gato',nombre:'',color:'naranja',tamano:'mediano',senas:'Atigrado, muy dócil, parece de casa.',municipio:'Armenia',sector:'Occidente',barrio:'',dias:3,estado:'nuevo',hist:[[3,'nuevo','Reporte publicado']]},
+ {k:'caso',id:'ej06',tipo:'perdida',especie:'perro',nombre:'Toby',color:'manchado',tamano:'mediano',senas:'Pelaje blanco con manchas negras.',municipio:'Armenia',sector:'Sur',barrio:'',dias:9,estado:'reunido',hist:[[9,'nuevo','Reporte publicado'],[7,'avistamiento','Lo vieron cerca de una panadería'],[5,'reunido','Verificado con fotos anteriores y entregado en un lugar público']]},
+ {k:'caso',id:'ej07',tipo:'perdida',especie:'gato',nombre:'Sombra',color:'negro',tamano:'pequeno',senas:'Collar azul con cascabel.',municipio:'Armenia',sector:'Centro',barrio:'',dias:12,estado:'cerrado',hist:[[12,'nuevo','Reporte publicado'],[8,'cerrado','La familia regresó con su gato por cuenta propia']]},
+ {k:'caso',id:'ej08',tipo:'perdida',especie:'perro',nombre:'Nieve',color:'blanco',tamano:'grande',senas:'Pelo largo, muy amistosa.',municipio:'Armenia',sector:'Oriente',barrio:'',dias:1,estado:'nuevo',hist:[[1,'nuevo','Reporte publicado']]},
+ {k:'vista',id:'ejv1',casoId:'ej01',especie:'perro',color:'cafe',tamano:'mediano',nota:'Cruzando la calle, parecía tranquilo.',municipio:'Armenia',sector:'Centro',barrio:'',dias:1},
+ {k:'vista',id:'ejv2',casoId:'ej02',especie:'gato',color:'gris',tamano:'pequeno',nota:'Escondido bajo un carro, en un jardín.',municipio:'Armenia',sector:'Norte',barrio:'',dias:2},
+ {k:'vista',id:'ejv3',casoId:null,especie:'perro',color:'cafe',tamano:'mediano',nota:'Perro café con collar verde cerca de una panadería.',municipio:'Armenia',sector:'Centro',barrio:'',dias:0},
+ {k:'vista',id:'ejv4',casoId:null,especie:'gato',color:'naranja',tamano:'mediano',nota:'Gato atigrado en un andén, se deja acercar.',municipio:'Armenia',sector:'Occidente',barrio:'',dias:2}
+];//END_DEMO
+function haceDias(n,extraH){var d=new Date(Date.now()-n*86400000-(extraH||0)*3600000);return d}
+function realizarDemo(){
+  var casos=[],avist=[];
+  DEMO.forEach(function(d){
+    if(d.k==='caso'){
+      var c=haceDias(d.dias);
+      casos.push({id:d.id,tipo:d.tipo,especie:d.especie,nombre:d.nombre,color:d.color,tamano:d.tamano,senas:d.senas,municipio:d.municipio,sector:d.sector,barrio:d.barrio,
+        fecha:c.getFullYear()+'-'+pad(c.getMonth()+1)+'-'+pad(c.getDate()),hora:'',foto:null,estado:d.estado,moderacion:'aprobado',creadoPor:'ejemplo',creadoEn:c.toISOString(),ejemplo:true,
+        historial:d.hist.map(function(h){return {estado:h[1],ts:haceDias(h[0]).toISOString(),nota:h[2]}})});
+    }else{
+      var v=haceDias(d.dias);
+      avist.push({id:d.id,casoId:d.casoId,especie:d.especie,color:d.color,tamano:d.tamano,nota:d.nota,municipio:d.municipio,sector:d.sector,barrio:d.barrio,
+        fecha:v.getFullYear()+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate()),hora:'',creadoPor:'ejemplo',creadoEn:v.toISOString(),ejemplo:true});
+    }
+  });
+  return {casos:casos,avist:avist};
+}
+
+/* ---------- estado de la app ---------- */
+var store={mode:'cargando',why:'',slow:false,db:null,user:null,uid:null,admin:false,casos:[],avist:[],buzon:[],opiniones:[],loaded:{}};
+var local=LSget('rs_demo_v1',null);
+if(!local){var dm=realizarDemo();local={casos:dm.casos,avist:dm.avist,buzon:[],opinion:null,uid:'l'+nid()};LSset('rs_demo_v1',local)}
+var prefs=LSget('rs_prefs_v1',{sectores:[],especies:['perro','gato'],frecuencia:'app',visto:0});
+var handled=LSget('rs_mod_handled',{});
+var ui={f:{q:'',tipo:'todos',especie:'todas',sector:'todos',estado:'activos',dias:'todos'},form:null,pubTipo:'perdida',pubFoto:null,result:null,modTab:'pendientes',confirm:null,pendingRender:false,verif:false};
+
+function cloud(){return store.mode==='nube'}
+function saveLocal(){LSset('rs_demo_v1',local)}
+
+/* ---------- ilustraciones ---------- */
+function avatar(especie,color){
+  var c=(COLORES[color]||COLORES.beige)[1];
+  var stroke='rgba(0,0,0,.28)';
+  var s='<svg viewBox="0 0 64 64" role="img" aria-label="'+esc(especieL(especie))+' '+esc(COLOR_CORTO[color]||'')+'"><rect width="64" height="64" fill="var(--surface-2)"/>';
+  if(especie==='gato'){
+    s+='<path d="M16 30 14 12l14 8z" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5" stroke-linejoin="round"/><path d="M48 30 50 12 36 20z" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5" stroke-linejoin="round"/>';
+    s+='<ellipse cx="32" cy="38" rx="19" ry="17" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5"/>';
+    s+='<path d="M25 44q7 5 14 0" fill="none" stroke="'+stroke+'" stroke-width="1.5" stroke-linecap="round"/><path d="M32 41v3" stroke="'+stroke+'" stroke-width="1.5"/>';
+  }else{
+    s+='<ellipse cx="14" cy="34" rx="7" ry="13" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5" transform="rotate(14 14 34)"/><ellipse cx="50" cy="34" rx="7" ry="13" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5" transform="rotate(-14 50 34)"/>';
+    s+='<ellipse cx="32" cy="36" rx="18" ry="19" fill="'+c+'" stroke="'+stroke+'" stroke-width="1.5"/>';
+    s+='<ellipse cx="32" cy="44" rx="8" ry="6" fill="rgba(255,255,255,.35)"/><ellipse cx="32" cy="41.500" rx="3.200" ry="2.400" fill="#2a2a2a"/>';
+  }
+  if(color==='manchado')s+='<circle cx="24" cy="30" r="6" fill="#4a3a2a" opacity=".75"/><circle cx="42" cy="40" r="5" fill="#4a3a2a" opacity=".75"/>';
+  var eye=(color==='negro')?'#f2f2ee':'#1d1d1d';
+  s+='<circle cx="25" cy="34" r="2.200" fill="'+eye+'"/><circle cx="39" cy="34" r="2.200" fill="'+eye+'"/></svg>';
+  return s;
+}
+var IC={
+ lista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.500"/><path d="m20 20-4.200-4.200"/></svg>',
+ mas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+ mapa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.500-5.600-6.500-11a6.500 6.500 0 0 1 13 0c0 5.400-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.300"/></svg>',
+ alerta:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.500 2h-15z"/><path d="M10 21h4"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
+ perdi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16v.01"/></svg>',
+ encontre:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 20v-6h6v6"/></svg>',
+ vi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.500-7 10-7 10 7 10 7-3.500 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ escudo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.500 3 8 7 10 4-2 7-5.500 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+ candado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+ voz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.500 7.200L4 20l1-4.500A8 8 0 1 1 21 12z"/></svg>',
+ panel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
+ vacio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="9" r="1.800"/><circle cx="12" cy="6.500" r="1.800"/><circle cx="17" cy="9" r="1.800"/><path d="M12 12c-3 0-5 2.200-5 4.500 0 1.700 1.400 2.500 3 2.500 1 0 1.300-.5 2-.5s1 .5 2 .5c1.600 0 3-.8 3-2.500 0-2.300-2-4.500-5-4.500z"/></svg>'
+};
+
+/* ---------- normalización y consultas ---------- */
+function titulo(it){
+  if(it.kind==='avistamiento')return 'Avistamiento: '+especieL(it.especie).toLowerCase()+' '+(COLOR_CORTO[it.color]||'');
+  return (it.nombre?it.nombre+' · ':'')+especieL(it.especie)+' '+(COLOR_CORTO[it.color]||'');
+}
+function ubic(it){var p=[];if(it.barrio)p.push(it.barrio);if(it.sector&&it.municipio==='Armenia')p.push('sector '+it.sector);p.push(it.municipio);return p.join(', ')}
+function normCaso(c){var o=Object.assign({},c);o.kind=c.tipo;o.ref='caso-'+c.id;return o}
+function normAv(a){var o=Object.assign({},a);o.kind='avistamiento';o.ref='vista-'+a.id;o.estado='avistamiento';o.senas=a.nota;return o}
+function activo(it){if(it.kind==='avistamiento')return Date.now()-evTs(it)<21*86400000;return INACTIVOS.indexOf(it.estado)<0}
+function casosVisibles(){return store.casos.filter(function(c){return c.moderacion==='aprobado'||c.creadoPor===store.uid||store.admin})}
+function todosItems(){
+  var a=casosVisibles().map(normCaso);
+  store.avist.filter(function(v){return !v.casoId}).forEach(function(v){a.push(normAv(v))});
+  return a.sort(function(x,y){return evTs(y)-evTs(x)});
+}
+function itemsActivosPublicos(){return todosItems().filter(function(it){return (it.kind==='avistamiento'||it.moderacion==='aprobado')&&activo(it)})}
+/* el mapa cuenta lo público y también los reportes propios que aún están en revisión */
+function itemsMapa(){return todosItems().filter(function(it){return activo(it)&&(it.kind==='avistamiento'||it.moderacion==='aprobado'||(esMio(it)&&it.moderacion!=='rechazado'))})}
+function buscar(ref){
+  if(ref.indexOf('caso-')===0){var id=ref.slice(5);var c=store.casos.filter(function(x){return x.id===id})[0];return c?normCaso(c):null}
+  if(ref.indexOf('vista-')===0){var id2=ref.slice(6);var v=store.avist.filter(function(x){return x.id===id2})[0];return v?normAv(v):null}
+  return null;
+}
+function esMio(it){return it.creadoPor&&it.creadoPor===store.uid}
+function avistDe(casoId){return store.avist.filter(function(v){return v.casoId===casoId}).sort(function(a,b){return Date.parse(b.creadoEn)-Date.parse(a.creadoEn)})}
+
+function coincidencias(base){
+  var cand=[];
+  if(base.kind==='perdida'){cand=todosItems().filter(function(i){return (i.kind==='encontrada'||i.kind==='avistamiento')&&activo(i)&&(i.kind==='avistamiento'?!i.casoId:i.moderacion==='aprobado')})}
+  else{cand=todosItems().filter(function(i){return i.kind==='perdida'&&activo(i)&&i.moderacion==='aprobado'})}
+  var res=[];
+  cand.forEach(function(c){
+    if(c.id===base.id||c.especie!==base.especie)return;
+    var s=0;
+    if(c.color===base.color)s+=3;
+    if(c.municipio===base.municipio&&c.sector&&c.sector===base.sector)s+=2;
+    if(c.tamano&&c.tamano===base.tamano)s+=1;
+    if(Math.abs(evTs(c)-evTs(base))<=14*86400000)s+=1;
+    if(s>=4)res.push({it:c,s:s});
+  });
+  return res.sort(function(a,b){return b.s-a.s}).slice(0,3);
+}
+
+function aplicarFiltros(items){
+  var f=ui.f,q=f.q.trim().toLowerCase();
+  return items.filter(function(it){
+    if(f.tipo!=='todos'&&it.kind!==f.tipo)return false;
+    if(f.especie!=='todas'&&it.especie!==f.especie)return false;
+    if(f.sector!=='todos'&&(it.sector!==f.sector||it.municipio!=='Armenia'))return false;
+    if(f.estado==='activos'&&!activo(it))return false;
+    if(f.estado==='reunidos'&&it.estado!=='reunido')return false;
+    if(f.dias!=='todos'&&Date.now()-evTs(it)>(+f.dias)*86400000)return false;
+    if(q){var hay=[it.nombre,it.senas,it.barrio,it.sector,COLOR_CORTO[it.color],COLORES[it.color]&&COLORES[it.color][0],especieL(it.especie),it.municipio].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
+    return true;
+  });
+}
+
+/* ---------- API compartida ---------- */
+var apiUser=null;
+async function api(path,opts){
+  var r=await fetch('/api'+path,Object.assign({credentials:'same-origin',headers:{'Content-Type':'application/json'}},opts||{}));
+  var data=await r.json().catch(function(){return {}});
+  if(!r.ok)throw Object.assign(new Error(data.error||'Error de servidor'),{code:data.code||'server_error'});
+  return data;
+}
+function cloud(){return store.mode==='nube'}
+function saveLocal(){LSset('rs_demo_v1',local)}
+function errMsg(e){return e&&e.message?e.message:'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'}
+async function putCaso(c){await api('/casos',{method:'POST',body:JSON.stringify(c)});await refreshData()}
+async function putAv(a){await api('/avistamientos',{method:'POST',body:JSON.stringify(a)});await refreshData()}
+async function delDoc(col,id){await api('/'+(col==='casos'?'casos':'avistamientos')+'/'+encodeURIComponent(id),{method:'DELETE'});await refreshData()}
+async function putBuzon(item){await api('/mensajes',{method:'POST',body:JSON.stringify(item)});await refreshData()}
+async function putOpinion(o){await api('/opiniones',{method:'POST',body:JSON.stringify(o)});await refreshData()}
+function miBuzonItems(){return store.buzon.filter(function(b){return b.uid===store.uid}).reduce(function(a,b){return a.concat(b.items||[])},[])}
+function miOpinion(){return store.opiniones.filter(function(o){return o.creadoPor===store.uid})[0]||null}
+
+/* ---------- sesión y sincronización ---------- */
+async function boot(){
+  render();
+  try{
+    var session=await api('/session');
+    if(!session.user){showAuth();return}
+    apiUser=session.user;store.user=apiUser;store.uid=apiUser.id;store.admin=!!apiUser.admin;
+    store.mode='nube';
+    await refreshData();
+    render();
+    window.setInterval(function(){refreshData().catch(function(){})},12000);
+  }catch(e){
+    store.mode='demo';store.admin=false;store.uid=local.uid;
+    store.why='No fue posible conectar con el servidor. Inicia el servidor del proyecto para usar los datos compartidos.';
+    store.casos=local.casos.slice();store.avist=local.avist.slice();store.opiniones=local.opinion?[local.opinion]:[];
+    render();
+  }
+}
+async function refreshData(){
+  var d=await api('/datos');
+  store.casos=d.casos||[];store.avist=d.avistamientos||[];
+  store.buzon=d.buzon||[];store.opiniones=d.opiniones||[];store.resumen=d.resumen||null;
+  onData();
+}
+function conectar(){refreshData()}
+function first(){}
+function formAbierto(){return !!document.querySelector('#view [data-keep]')}
+function onData(){
+  /* nunca redibujar mientras haya un formulario en pantalla: borraría lo que la persona está escribiendo */
+  if(formAbierto())return;
+  var r=route().v;if(r==='publicar'||r==='opinion')return;render(true);
+}
+document.addEventListener('focusout',function(){setTimeout(function(){if(ui.pendingRender&&!formAbierto()){ui.pendingRender=false;render(true)}},60)});
+function showAuth(){
+  var el=document.createElement('div');el.id='auth-screen';
+  el.innerHTML='<div class="auth-card"><div class="brand">REENCUENTO SEGURO<small>Accede a la comunidad</small></div><div class="chips"><button class="chip" type="button" data-auth-tab="login" aria-pressed="true">Iniciar sesión</button><button class="chip" type="button" data-auth-tab="register" aria-pressed="false">Crear cuenta</button></div><form id="auth-form" class="stack"><div class="field"><label>Correo electrónico</label><input name="email" type="email" required maxlength="160" autocomplete="email"></div><div class="field"><label>Contraseña</label><input name="password" type="password" required minlength="8" autocomplete="current-password"></div><div class="field" id="auth-name" hidden><label>Nombre</label><input name="name" maxlength="100" autocomplete="name"></div><button class="btn" type="submit">Continuar</button><p class="small muted" id="auth-msg">Usa tu cuenta para compartir reportes entre dispositivos.</p></form></div>';
+  document.body.appendChild(el);
+  var mode='login';
+  el.addEventListener('click',function(e){var b=e.target.closest('[data-auth-tab]');if(!b)return;mode=b.dataset.authTab;el.querySelectorAll('[data-auth-tab]').forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.authTab===mode))});el.querySelector('#auth-name').hidden=mode!=='register';el.querySelector('[name=password]').autocomplete=mode==='login'?'current-password':'new-password';el.querySelector('button[type=submit]').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'});
+  el.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();var f=e.currentTarget,b=f.querySelector('button[type=submit]'),d=Object.fromEntries(new FormData(f));b.disabled=true;try{var r=await api('/auth/'+mode,{method:'POST',body:JSON.stringify(d)});apiUser=r.user;store.uid=r.user.id;store.admin=!!r.user.admin;store.mode='nube';store.user=r.user;await refreshData();el.remove();render();window.setInterval(function(){refreshData().catch(function(){})},12000)}catch(x){el.querySelector('#auth-msg').textContent=x.message||'No fue posible acceder'}finally{b.disabled=false}});
+}
+/* ---------- rutas ---------- */
+function route(){
+  var h=(location.hash||'').replace(/^#/,'')||'inicio';
+  if(h.indexOf('caso-')===0||h.indexOf('vista-')===0)return {v:'detalle',ref:h};
+  var ok=['inicio','publicar','mapa','alertas','mas','seguridad','privacidad','opinion','moderacion'];
+  return {v:ok.indexOf(h)>=0?h:'inicio'};
+}
+window.addEventListener('hashchange',function(){ui.form=null;ui.confirm=null;ui.result=null;render();window.scrollTo(0,0)});
+
+/* ---------- vistas ---------- */
+function banner(){
+  if(store.mode==='cargando')return '<div class="notice info">'+(store.slow?'La conexión está tardando. Los datos pueden no estar al día.':'Conectando con los reportes…')+'</div>';
+  if(store.mode==='demo')return '<div class="notice"><b>Modo demostración.</b> '+esc(store.why)+' Ves reportes de ejemplo y lo que publiques se guarda solo en este navegador.</div>';
+  return '';
+}
+function pillTipo(k){return '<span class="pill '+TIPO_CLASE[k]+'">'+TIPOS[k]+'</span>'}
+function pillEstado(it){
+  if(it.kind==='avistamiento')return '';
+  var cl=INACTIVOS.indexOf(it.estado)>=0?'ok':'';
+  return '<span class="pill '+cl+'">'+esc(ESTADOS[it.estado]||it.estado)+'</span>';
+}
+function foto(it,cls){
+  if(fotoOk(it.foto))return '<img src="'+it.foto+'" alt="Foto de '+esc(titulo(it))+'">';
+  return avatar(it.especie,it.color);
+}
+function cardItem(it){
+  var extra='';
+  if(it.moderacion==='pendiente')extra+='<span class="pill warn">En revisión</span>';
+  if(it.moderacion==='rechazado')extra+='<span class="pill warn">Rechazado</span>';
+  if(it.ejemplo)extra+='<span class="pill">Ejemplo</span>';
+  return '<a class="item" href="#'+it.ref+'"><span class="ph">'+foto(it)+'</span><span><span class="pills">'+pillTipo(it.kind)+pillEstado(it)+extra+'</span>'
+   +'<h3>'+esc(titulo(it))+'</h3><span class="meta">'+esc(ubic(it))+' · '+esc(fechaDia(it.fecha))+'</span>'
+   +'<span class="txt">'+esc(it.senas||'')+'</span></span></a>';
+}
+function resumen(){
+  if(cloud()&&store.resumen)return store.resumen;
+  var items=itemsActivosPublicos();
+  return {activos:items.filter(function(i){return i.kind!=='avistamiento'}).length,
+    reunidos:store.casos.filter(function(c){return c.estado==='reunido'&&c.moderacion==='aprobado'}).length,
+    avist:store.avist.length};
+}
+function viewInicio(){
+  var n=resumen();
+  var vacio=(cloud()&&!store.casos.length&&!store.avist.length);
+  return '<div class="stack">'+banner()
+  +'<section class="hero"><h1>Que cada huella tenga camino de regreso a casa</h1><p>Reporta, busca y sigue cada caso de mascotas perdidas, encontradas y avistadas en el Quindío.</p>'
+  +'<div class="quick"><a href="#publicar" data-act="pub" data-tipo="perdida">'+IC.perdi+'Perdí a mi mascota</a><a href="#publicar" data-act="pub" data-tipo="encontrada">'+IC.encontre+'Encontré una mascota</a><a href="#publicar" data-act="pub" data-tipo="avistamiento">'+IC.vi+'Vi una mascota</a></div></section>'
+  +'<div class="stats"><div class="stat"><b>'+n.activos+'</b><span>casos activos</span></div><div class="stat"><b>'+n.avist+'</b><span>avistamientos</span></div><div class="stat"><b>'+n.reunidos+'</b><span>reencuentros</span></div></div>'
+  +'<section class="filters card flat" aria-label="Filtros">'
+  +'<div class="field"><label for="f-q">Buscar por señas, nombre o barrio</label><input id="f-q" type="search" value="'+esc(ui.f.q)+'" placeholder="Ej: collar verde, Max, Centro" data-filter="q" autocomplete="off"></div>'
+  +'<div class="chips" role="group" aria-label="Tipo de reporte">'+chipsF('tipo',[['todos','Todos'],['perdida','Perdidas'],['encontrada','Encontradas'],['avistamiento','Avistamientos']])+'</div>'
+  +'<div class="chips" role="group" aria-label="Especie">'+chipsF('especie',[['todas','Perros y gatos'],['perro','Perros'],['gato','Gatos']])+'</div>'
+  +'<div class="fgrid"><div class="field"><label for="f-sector">Sector</label><select id="f-sector" data-filter="sector"><option value="todos">Todos los sectores</option>'+SECTORES.map(function(s){return '<option value="'+s+'"'+(ui.f.sector===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></div>'
+  +'<div class="field"><label for="f-estado">Estado</label><select id="f-estado" data-filter="estado"><option value="activos"'+(ui.f.estado==='activos'?' selected':'')+'>Solo activos</option><option value="todos"'+(ui.f.estado==='todos'?' selected':'')+'>Todos</option><option value="reunidos"'+(ui.f.estado==='reunidos'?' selected':'')+'>Reunidos</option></select></div>'
+  +'<div class="field"><label for="f-dias">Fecha</label><select id="f-dias" data-filter="dias"><option value="todos"'+(ui.f.dias==='todos'?' selected':'')+'>Cualquiera</option><option value="7"'+(ui.f.dias==='7'?' selected':'')+'>Últimos 7 días</option><option value="30"'+(ui.f.dias==='30'?' selected':'')+'>Últimos 30 días</option></select></div></div></section>'
+  +(vacio?emptyCloud():'')
+  +'<div id="lista" class="list" aria-label="Reportes">'+listaHTML()+'</div></div>';
+}
+function chipsF(key,opts){return opts.map(function(o){return '<button type="button" class="chip" data-act="chip" data-k="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(ui.f[key]===o[0])+'">'+o[1]+'</button>'}).join('')}
+function emptyCloud(){
+  return '<div class="card empty">'+IC.vacio+'<h3>Aún no hay reportes</h3><p>Sé la primera persona en publicar un caso.'+(store.admin?' Como moderador también puedes cargar ejemplos desde Más → Moderación → Datos.':'')+'</p></div>';
+}
+function listaHTML(){
+  var items=aplicarFiltros(todosItems());
+  if(!items.length)return '<div class="card empty">'+IC.vacio+'<h3>No hay reportes con esos filtros</h3><p>Prueba quitar algún filtro o ampliar las fechas.</p></div>';
+  return items.map(cardItem).join('');
+}
+
+function viewDetalle(ref){
+  var it=buscar(ref);
+  if(!it)return '<div class="stack">'+banner()+'<div class="card empty">'+IC.vacio+'<h3>No encontramos este reporte</h3><p>Pudo haber sido eliminado o aún se está cargando.</p><p style="margin-top:12px"><a class="btn" href="#inicio">Volver a los reportes</a></p></div></div>';
+  var mio=esMio(it)||store.admin;
+  var h='<div class="stack">'+banner()+'<a href="#inicio" class="small">← Volver a los reportes</a>';
+  h+='<div class="detail-ph">'+foto(it)+'</div>';
+  h+='<div><div class="pills">'+pillTipo(it.kind)+pillEstado(it)+(it.moderacion==='pendiente'?'<span class="pill warn">En revisión del moderador</span>':'')+(it.ejemplo?'<span class="pill">Ejemplo</span>':'')+'</div><h2>'+esc(titulo(it))+'</h2></div>';
+  if(it.moderacion==='pendiente')h+='<div class="notice">Tu reporte aún no es público. Un moderador lo revisa para evitar datos privados y publicaciones sospechosas.</div>';
+  if(it.moderacion==='rechazado')h+='<div class="notice bad">Este reporte no fue aprobado. Puedes eliminarlo y publicarlo de nuevo sin datos personales.</div>';
+  h+='<section class="card"><dl class="dl">'
+   +'<dt>Especie</dt><dd>'+especieL(it.especie)+'</dd>'
+   +'<dt>Color</dt><dd>'+esc((COLORES[it.color]||[''])[0])+'</dd>'
+   +(it.tamano?'<dt>Tamaño</dt><dd>'+esc(TAMANOS[it.tamano]||'')+'</dd>':'')
+   +'<dt>Zona</dt><dd>'+esc(ubic(it))+'</dd>'
+   +'<dt>'+(it.kind==='perdida'?'Se perdió':it.kind==='encontrada'?'La encontraron':'La vieron')+'</dt><dd>'+esc(fechaDia(it.fecha))+(it.hora?' · '+esc(it.hora):'')+'</dd>'
+   +'<dt>Señas</dt><dd>'+esc(it.senas||'Sin señas particulares')+'</dd>'
+   +'<dt>Publicado</dt><dd>'+esc(rel(it.creadoEn))+'</dd></dl></section>';
+
+  if(it.kind!=='avistamiento'){
+    h+='<section class="card"><h3>Seguimiento del caso</h3><ol class="tl" style="margin-top:12px">'+
+      (it.historial||[]).slice().reverse().map(function(x){return '<li><b>'+esc(ESTADOS[x.estado]||x.estado)+'</b>'+(x.nota?'<br><span class="muted">'+esc(x.nota)+'</span>':'')+'<time>'+esc(rel(x.ts))+'</time></li>'}).join('')+'</ol></section>';
+    var av=avistDe(it.id);
+    h+='<section class="card stack"><h3>Avistamientos ('+av.length+')</h3>';
+    if(!av.length)h+='<p class="muted">Todavía nadie ha registrado un avistamiento de esta mascota.</p>';
+    else h+='<ul class="clean">'+av.map(function(v){return '<li><b>'+esc(fechaDia(v.fecha))+(v.hora?' · '+esc(v.hora):'')+'</b> · '+esc(ubic(v))+(v.nota?'<br><span class="muted">'+esc(v.nota)+'</span>':'')+'</li>'}).join('')+'</ul>';
+    if(it.moderacion==='aprobado'&&activo(it)&&ui.form!=='avist')h+='<button class="btn ghost" data-act="form" data-f="avist">'+IC.vi.replace('<svg','<svg width="20" height="20"')+' Vi a esta mascota</button>';
+    if(ui.form==='avist')h+=formAvist(it);
+    h+='</section>';
+  }
+  var cs=coincidencias(it);
+  if(cs.length&&activo(it)&&it.moderacion==='aprobado'){
+    h+='<section class="card stack"><h3>Posibles coincidencias</h3><p class="small muted">Se calculan con especie, color, tamaño, sector y fecha. No son una confirmación: verifica siempre con fotos y señas.</p>'
+     +cs.map(function(c){return '<a class="match" href="#'+c.it.ref+'"><span class="ph">'+foto(c.it)+'</span><span><span class="pills">'+pillTipo(c.it.kind)+'<span class="pill '+(c.s>=6?'ok':'warn')+'">Coincidencia '+(c.s>=6?'alta':'media')+'</span></span><b>'+esc(titulo(c.it))+'</b><br><span class="small muted">'+esc(ubic(c.it))+'</span></span></a>'}).join('')+'</section>';
+  }
+
+  if(mio&&it.kind!=='avistamiento')h+=panelDueno(it);
+  else if(it.kind!=='avistamiento'&&it.moderacion==='aprobado'&&activo(it))h+=panelContacto(it);
+
+  if(it.moderacion==='aprobado'||mio){
+    var t=textoCompartir(it);
+    h+='<section class="card stack"><h3>Compartir este aviso</h3><p class="small muted">El aviso no incluye teléfonos ni direcciones exactas.</p><div class="row"><a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(t)+'">Enviar por WhatsApp</a><button class="btn sm ghost" data-act="copiar" data-t="'+esc(t)+'">Copiar texto</button></div></section>';
+  }
+  if(!mio&&it.moderacion==='aprobado')h+='<p class="small muted">¿Algo sospechoso en este reporte? Escribe al moderador desde “Contactar de forma segura” o evita compartir datos personales.</p>';
+  h+='</div>';
+  return h;
+}
+function textoCompartir(it){
+  var t=it.kind==='perdida'?'SE BUSCA':it.kind==='encontrada'?'MASCOTA ENCONTRADA':'AVISTAMIENTO';
+  return t+': '+titulo(it)+' · '+ubic(it)+'. '+(it.senas||'')+' Más información: '+String(location.href).split('#')[0]+'#'+it.ref;
+}
+function opcionesSector(sel){return '<option value="">Elige un sector</option>'+SECTORES.map(function(s){return '<option value="'+s+'"'+(sel===s?' selected':'')+'>'+s+'</option>'}).join('')}
+function formAvist(caso){
+  return '<form data-form="avist" data-keep class="stack card flat" novalidate><input type="hidden" name="casoId" value="'+esc(caso.id)+'">'
+   +'<div class="fgrid"><div class="field"><label for="av-fecha">¿Cuándo la viste?</label><input id="av-fecha" name="fecha" type="date" max="'+hoy()+'" value="'+hoy()+'" required></div>'
+   +'<div class="field"><label for="av-hora">Hora aproximada</label><input id="av-hora" name="hora" type="time"></div></div>'
+   +'<div class="fgrid"><div class="field"><label for="av-sector">Sector</label><select id="av-sector" name="sector" required>'+opcionesSector(caso.sector)+'</select></div>'
+   +'<div class="field"><label for="av-barrio">Barrio o referencia</label><input id="av-barrio" name="barrio" type="text" maxlength="80" placeholder="Ej: cerca de un parque"></div></div>'
+   +'<div class="field"><label for="av-nota">¿Qué viste?</label><textarea id="av-nota" name="nota" maxlength="300" placeholder="Estado del animal, hacia dónde iba…"></textarea><span class="hint">No incluyas direcciones exactas ni datos de otras personas.</span></div>'
+   +'<div class="row"><button class="btn" type="submit">Registrar avistamiento</button><button class="btn ghost" type="button" data-act="form" data-f="">Cancelar</button></div></form>';
+}
+function panelContacto(it){
+  var h='<section class="card stack"><h3>Contactar de forma segura</h3>';
+  if(ui.form!=='contacto'){
+    h+='<p class="small muted">Los teléfonos no se publican. Tu mensaje llega al moderador, que lo hace llegar a la persona que publicó el caso.</p><button class="btn" data-act="form" data-f="contacto">'+(it.kind==='perdida'?'Tengo información de esta mascota':'Creo que es mi mascota')+'</button>';
+  }else{
+    h+='<form data-form="contacto" data-keep class="stack" novalidate><input type="hidden" name="casoId" value="'+esc(it.id)+'">'
+     +'<div class="field"><label for="ct-msg">Tu mensaje</label><textarea id="ct-msg" name="mensaje" maxlength="500" required placeholder="'+(it.kind==='encontrada'?'Describe una seña que NO aparezca en la publicación para demostrar que es tu mascota.':'Cuéntanos qué viste y dónde.')+'"></textarea></div>'
+     +'<div class="field"><label for="ct-tel">Tu celular (solo lo verá el moderador)</label><input id="ct-tel" name="contacto" type="tel" inputmode="tel" placeholder="3001234567" required></div>'
+     +'<label class="check"><input type="checkbox" name="acepto" required><span>Autorizo el tratamiento de mi celular para que me contacten por este caso, según el <a href="#privacidad">aviso de privacidad</a>.</span></label>'
+     +'<div class="row"><button class="btn" type="submit">Enviar mensaje</button><button class="btn ghost" type="button" data-act="form" data-f="">Cancelar</button></div></form>';
+  }
+  return h+'</section>';
+}
+function panelDueno(it){
+  var h='<section class="card stack"><h3>Gestionar mi caso</h3>';
+  var priv=miBuzonItems().filter(function(i){return i.tipo==='senaPrivada'&&i.casoId===it.id})[0];
+  if(priv)h+='<p class="small"><b>Tu seña privada para verificar:</b> '+esc(priv.texto)+'<br><span class="muted">Solo tú y los moderadores pueden verla.</span></p>';
+  if(ui.form!=='estado'){
+    h+='<div class="row"><button class="btn" data-act="form" data-f="estado">Actualizar estado</button>';
+    if(ui.confirm==='del')h+='<button class="btn danger" data-act="eliminar" data-id="'+esc(it.id)+'">Sí, eliminar definitivamente</button><button class="btn ghost" data-act="confirmar" data-c="">Cancelar</button>';
+    else h+='<button class="btn danger" data-act="confirmar" data-c="del">Eliminar mi reporte</button>';
+    h+='</div>';
+  }else{
+    var ops=ESTADOS_POR_TIPO[it.tipo]||ESTADOS_POR_TIPO.perdida;
+    h+='<form data-form="estado" data-keep class="stack" novalidate><input type="hidden" name="id" value="'+esc(it.id)+'">'
+     +'<div class="field"><label for="es-sel">Nuevo estado</label><select id="es-sel" name="estado">'+ops.filter(function(o){return o!==it.estado}).map(function(o){return '<option value="'+o+'">'+esc(ESTADOS[o])+'</option>'}).join('')+'</select></div>'
+     +'<div id="verif" class="stack" hidden><div class="notice info"><b>Antes de cerrar como reunido, verifica:</b></div>'
+     +'<label class="check"><input type="checkbox" name="v1"><span>Quien reclama mostró fotos anteriores o el carné veterinario.</span></label>'
+     +'<label class="check"><input type="checkbox" name="v2"><span>Describió una seña que no estaba publicada.</span></label>'
+     +'<label class="check"><input type="checkbox" name="v3"><span>La entrega fue en un lugar público y sin pagos anticipados.</span></label></div>'
+     +'<div class="field"><label for="es-nota">Nota para el historial</label><textarea id="es-nota" name="nota" maxlength="240" placeholder="Qué pasó desde la última actualización"></textarea></div>'
+     +'<div class="row"><button class="btn" type="submit">Guardar</button><button class="btn ghost" type="button" data-act="form" data-f="">Cancelar</button></div></form>';
+  }
+  return h+'</section>';
+}
+
+/* publicar */
+function viewPublicar(){
+  if(ui.result)return viewResultado();
+  var t=ui.pubTipo;
+  var h='<div class="stack">'+banner()+'<div><h2>Publicar un reporte</h2><p class="muted">Tarda menos de dos minutos. Ubicación aproximada: nunca pongas la dirección exacta de una vivienda.</p></div>';
+  h+='<form data-form="publicar" data-keep class="stack" id="fpub" novalidate>';
+  h+='<fieldset><legend>¿Qué quieres reportar?</legend><div class="tipo-opts">'
+   +['perdida','encontrada','avistamiento'].map(function(k){var lab={perdida:'Perdí a mi mascota',encontrada:'Encontré una mascota',avistamiento:'Vi una mascota'}[k];var ic={perdida:IC.perdi,encontrada:IC.encontre,avistamiento:IC.vi}[k];return '<label>'+ic+'<input type="radio" name="tipo" value="'+k+'"'+(t===k?' checked':'')+'>'+lab+'</label>'}).join('')+'</div></fieldset>';
+  h+='<fieldset><legend>Especie</legend><div class="chips"><label class="chip" style="display:flex;gap:6px;align-items:center"><input type="radio" name="especie" value="perro" checked> Perro</label><label class="chip" style="display:flex;gap:6px;align-items:center"><input type="radio" name="especie" value="gato"> Gato</label></div></fieldset>';
+  h+='<div class="field" data-for="perdida"><label for="p-nombre">Nombre de la mascota (opcional)</label><input id="p-nombre" name="nombre" type="text" maxlength="40"></div>';
+  h+='<div class="fgrid"><div class="field"><label for="p-color">Color</label><select id="p-color" name="color" required><option value="">Elige un color</option>'+Object.keys(COLORES).map(function(k){return '<option value="'+k+'">'+COLORES[k][0]+'</option>'}).join('')+'</select></div>'
+   +'<div class="field"><label for="p-tam">Tamaño</label><select id="p-tam" name="tamano"><option value="">No sé</option>'+Object.keys(TAMANOS).map(function(k){return '<option value="'+k+'">'+TAMANOS[k]+'</option>'}).join('')+'</select></div></div>';
+  h+='<div class="field"><label for="p-senas" id="lbl-senas">Señas particulares visibles</label><textarea id="p-senas" name="senas" maxlength="300" placeholder="Collar, manchas, cicatrices, comportamiento…"></textarea><span class="hint">No incluyas teléfonos ni direcciones.</span></div>';
+  h+='<div class="fgrid"><div class="field"><label for="p-mun">Municipio</label><select id="p-mun" name="municipio">'+MUNICIPIOS.map(function(m){return '<option'+(m==='Armenia'?' selected':'')+'>'+m+'</option>'}).join('')+'</select></div>'
+   +'<div class="field"><label for="p-sec">Sector de Armenia</label><select id="p-sec" name="sector">'+opcionesSector('')+'</select></div></div>';
+  h+='<div class="field"><label for="p-bar">Barrio o referencia aproximada</label><input id="p-bar" name="barrio" type="text" maxlength="80" placeholder="Ej: cerca de un parque o de la Plaza de Bolívar"></div>';
+  h+='<div class="fgrid"><div class="field"><label for="p-fecha" id="lbl-fecha">¿Cuándo ocurrió?</label><input id="p-fecha" name="fecha" type="date" max="'+hoy()+'" value="'+hoy()+'" required></div><div class="field"><label for="p-hora">Hora aproximada</label><input id="p-hora" name="hora" type="time"></div></div>';
+  h+='<div class="field" data-for="perdida encontrada"><label for="p-foto">Foto (recomendada)</label><input id="p-foto" type="file" accept="image/*"><span class="hint">Se reduce y se guarda con tu reporte.</span><div id="foto-prev">'+(ui.pubFoto?'<img class="photo-prev" src="'+ui.pubFoto+'" alt="Vista previa">':'')+'</div></div>';
+  h+='<label class="check" data-for="encontrada"><input type="checkbox" name="resguardo"><span>La tengo en resguardo en este momento.</span></label>';
+  h+='<div class="field" data-for="perdida encontrada"><label for="p-tel">Tu celular (no se publica)</label><input id="p-tel" name="contacto" type="tel" inputmode="tel" placeholder="3001234567"><span class="hint">Solo lo ven los moderadores, para avisarte cuando haya novedades.</span></div>';
+  h+='<div class="field" data-for="perdida"><label for="p-priv">Una seña que NO publicarás (opcional)</label><input id="p-priv" name="privada" type="text" maxlength="120" placeholder="Ej: cicatriz en la pata trasera izquierda"><span class="hint">Sirve para comprobar que quien te contacta sí tiene a tu mascota.</span></div>';
+  h+='<label class="check"><input type="checkbox" name="acepto" required><span>Autorizo el tratamiento de los datos de este reporte según el <a href="#privacidad">aviso de privacidad</a> (Ley 1581 de 2012).</span></label>';
+  h+='<button class="btn" type="submit">Enviar reporte</button></form></div>';
+  return h;
+}
+function viewResultado(){
+  var r=ui.result,it=buscar(r.ref);
+  var h='<div class="stack">'+banner()+'<div class="card stack"><div class="notice good"><b>¡Listo!</b> '+(r.pendiente?'Tu reporte quedó en revisión y se publicará cuando un moderador lo apruebe.':'Tu aviso ya está publicado.')+'</div>';
+  if(it){
+    h+='<a class="item" href="#'+it.ref+'"><span class="ph">'+foto(it)+'</span><span><span class="pills">'+pillTipo(it.kind)+'</span><h3>'+esc(titulo(it))+'</h3><span class="meta">'+esc(ubic(it))+'</span></span></a>';
+    var cs=coincidencias(it);
+    if(cs.length)h+='<h3>Posibles coincidencias</h3>'+cs.map(function(c){return '<a class="match" href="#'+c.it.ref+'"><span class="ph">'+foto(c.it)+'</span><span><span class="pills">'+pillTipo(c.it.kind)+'</span><b>'+esc(titulo(c.it))+'</b><br><span class="small muted">'+esc(ubic(c.it))+'</span></span></a>'}).join('');
+    else h+='<p class="muted small">Por ahora no encontramos coincidencias. Activa alertas para enterarte de nuevos reportes de tu sector.</p>';
+  }
+  h+='<div class="row"><a class="btn" href="#'+(it?it.ref:'inicio')+'">Ver mi reporte</a><a class="btn ghost" href="#alertas">Activar alertas</a></div></div></div>';
+  return h;
+}
+
+/* mapa */
+function viewMapa(){
+  var items=itemsMapa(),porSector={};
+  SECTORES.forEach(function(s){porSector[s]={lost:0,found:0,seen:0}});
+  var otros={};
+  items.forEach(function(i){
+    if(i.municipio==='Armenia'&&porSector[i.sector]){porSector[i.sector][TIPO_CLASE[i.kind]]++}
+    else if(i.municipio!=='Armenia'){otros[i.municipio]=(otros[i.municipio]||0)+1}
+  });
+  var tot=function(s){var p=porSector[s];return p.lost+p.found+p.seen},max=Math.max(1,Math.max.apply(null,SECTORES.map(tot)));
+  var cls={Centro:'z-centro',Norte:'z-norte',Sur:'z-sur',Oriente:'z-ori',Occidente:'z-occ'};
+  var h='<div class="stack">'+banner()+'<div><h2>Mapa por zonas</h2><p class="muted">Esquema de Armenia por sectores. Muestra reportes activos sin revelar direcciones exactas. Toca un sector para ver sus casos.</p></div>';
+  h+='<div class="zmap" role="group" aria-label="Sectores de Armenia">'+SECTORES.map(function(s){var p=porSector[s],n=tot(s);
+    return '<button type="button" class="zone '+cls[s]+'" data-act="sector" data-s="'+s+'" style="background:color-mix(in srgb,var(--brand) '+Math.round(8+n/max*42)+'%,var(--surface))" aria-label="'+s+': '+n+' reportes activos">'
+     +'<b>'+s+'</b><span class="n">'+n+'</span><span class="dots"><span class="d lost" title="Perdidas">'+p.lost+'</span><span class="d found" title="Encontradas">'+p.found+'</span><span class="d seen" title="Avistamientos">'+p.seen+'</span></span></button>'}).join('')+'</div>';
+  h+='<div class="row small muted"><span class="d lost">Perdidas</span><span class="d found">Encontradas</span><span class="d seen">Avistamientos</span></div>';
+  var ks=Object.keys(otros);
+  if(ks.length)h+='<section class="card stack"><h3>Otros municipios del Quindío</h3><div class="chips">'+ks.map(function(k){return '<span class="pill">'+esc(k)+': '+otros[k]+'</span>'}).join('')+'</div></section>';
+  var enRev=items.filter(function(i){return i.moderacion==='pendiente'&&esMio(i)}).length;
+  if(enRev)h+='<div class="notice small">Incluye '+enRev+(enRev===1?' reporte tuyo que sigue':' reportes tuyos que siguen')+' en revisión. El resto de personas los verá cuando un moderador los apruebe.</div>';
+  h+='<div class="notice info small">Este mapa es esquemático a propósito: en esta versión no se publica ubicación en tiempo real ni coordenadas precisas.</div></div>';
+  return h;
+}
+
+/* alertas */
+function alertasItems(){
+  return itemsActivosPublicos().filter(function(i){
+    if(prefs.especies.indexOf(i.especie)<0)return false;
+    if(prefs.sectores.length&&!(i.municipio==='Armenia'&&prefs.sectores.indexOf(i.sector)>=0))return false;
+    if(esMio(i))return false;
+    return Date.now()-Date.parse(i.creadoEn)<14*86400000;
+  });
+}
+function alertasNuevas(){return alertasItems().filter(function(i){return Date.parse(i.creadoEn)>prefs.visto}).length}
+function viewAlertas(){
+  var items=alertasItems(),nuevas=alertasNuevas();
+  var h='<div class="stack">'+banner()+'<div><h2>Alertas por zona</h2><p class="muted">Elige tus sectores y verás aquí los reportes nuevos. En esta versión las alertas viven dentro de la app; los avisos por correo o notificación llegarán después.</p></div>';
+  h+='<form data-form="prefs" class="card stack" novalidate><fieldset><legend>Sectores que quiero seguir</legend><div class="chips">'+SECTORES.map(function(s){return '<label class="chip" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="sec" value="'+s+'"'+(prefs.sectores.indexOf(s)>=0?' checked':'')+'> '+s+'</label>'}).join('')+'</div><span class="hint small muted">Sin elegir ninguno, sigues todo Armenia.</span></fieldset>'
+   +'<fieldset><legend>Especies</legend><div class="chips"><label class="chip" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="esp" value="perro"'+(prefs.especies.indexOf('perro')>=0?' checked':'')+'> Perros</label><label class="chip" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="esp" value="gato"'+(prefs.especies.indexOf('gato')>=0?' checked':'')+'> Gatos</label></div></fieldset>'
+   +'<button class="btn" type="submit">Guardar preferencias</button></form>';
+  h+='<div class="row"><h3>Para ti'+(nuevas?' · '+nuevas+' nuevas':'')+'</h3><span class="sp"></span>'+(nuevas?'<button class="btn sm ghost" data-act="vistas">Marcar como vistas</button>':'')+'</div>';
+  h+='<div class="list">'+(items.length?items.map(function(i){return cardItem(i).replace('<span class="pills">','<span class="pills">'+ (Date.parse(i.creadoEn)>prefs.visto?'<span class="pill warn">Nuevo</span>':''))}).join(''):'<div class="card empty">'+IC.vacio+'<h3>Sin novedades en tus sectores</h3><p>Aquí aparecen los reportes de <b>otras personas</b> ya aprobados por moderación en los últimos 14 días. Tus propios reportes no generan alertas.</p></div>')+'</div></div>';
+  return h;
+}
+
+/* más, seguridad, privacidad */
+function viewMas(){
+  var h='<div class="stack">'+banner()+'<h2>Más</h2><section class="card menu">'
+   +'<a href="#seguridad">'+IC.escudo+'Pautas de seguridad para reencuentros</a>'
+   +'<a href="#privacidad">'+IC.candado+'Aviso de privacidad y tus derechos</a>'
+   +'<a href="#opinion">'+IC.voz+'Dar mi opinión sobre esta versión</a>'
+   +(store.admin?'<a href="#moderacion">'+IC.panel+'Panel de moderación</a>':'')+'<a href="#" data-act="logout">Cerrar sesión</a></section>'
+   +'<section class="card stack"><h3>Sobre esta versión</h3><p class="small muted">Producto mínimo viable (MVP) de Reencuentro Seguro. Prueba cuatro cosas: publicar un reporte, buscarlo con filtros, registrar un avistamiento y actualizar el caso hasta el reencuentro. Es complementaria a las plataformas y canales oficiales existentes y no ofrece garantías de recuperación.</p>'
+   +'<p class="small muted">Datos: '+(cloud()?'base de datos compartida':'solo en este navegador (demostración)')+'.</p></section></div>';
+  return h;
+}
+function viewSeguridad(){
+  return '<div class="stack"><a href="#mas" class="small">← Volver</a><h2>Pautas de seguridad</h2>'
+  +'<section class="card stack"><h3>Si encontraste una mascota</h3><ul class="clean"><li>No publiques tu dirección ni tu teléfono. Usa “Contactar de forma segura”.</li><li>Pide a quien la reclama fotos anteriores, carné veterinario o una seña que no esté publicada.</li><li>Si tiene microchip, una veterinaria puede leerlo sin costo de entrega de datos privados.</li><li>No intentes capturar animales asustados o agresivos. Si está herido o hay posible maltrato, llama a los servicios competentes.</li></ul></section>'
+  +'<section class="card stack"><h3>Si perdiste a tu mascota</h3><ul class="clean"><li>Guarda una seña privada que no publicarás y úsala para verificar.</li><li>Nunca pagues por adelantado para recibir a tu mascota. Es una señal de fraude.</li><li>Cita en un lugar público, de día y, si puedes, acompañado.</li><li>Marca el caso como reunido solo después de verificar a quien la entrega.</li></ul></section>'
+  +'<section class="card stack"><h3>Lo que hace la plataforma</h3><ul class="clean"><li>Muestra solo zona aproximada, nunca la ubicación exacta de una vivienda.</li><li>Los celulares quedan privados: los ve solo el moderador.</li><li>Un moderador revisa cada reporte nuevo antes de publicarlo.</li></ul></section></div>';
+}
+function viewPrivacidad(){
+  return '<div class="stack"><a href="#mas" class="small">← Volver</a><h2>Aviso de privacidad</h2>'
+  +'<section class="card stack"><p><b>Finalidad.</b> Recoger datos de reportes de mascotas y un celular de contacto para ayudar a reunir a las mascotas con sus familias.</p>'
+  +'<p><b>Qué se publica.</b> Especie, color, tamaño, señas, zona aproximada y fecha. El celular nunca se publica.</p>'
+  +'<p><b>Quién ve tu celular.</b> Solo el equipo de moderación, para relacionar a quien busca con quien encontró.</p>'
+  +'<p><b>Tus derechos.</b> Como titular puedes conocer, actualizar y suprimir tus datos. Puedes eliminar tu reporte desde la ficha del caso.</p>'
+  +'<p><b>Menores y terceros.</b> No publiques datos de otras personas ni fotos donde aparezcan.</p>'
+  +'<div class="notice small">Esta versión es un prototipo de validación. Antes de usar datos reales a escala se debe definir la política de tratamiento definitiva, el canal formal de solicitudes y los tiempos de retención, conforme a la Ley Estatutaria 1581 de 2012.</div></section></div>';
+}
+
+/* opinión (validación del MVP) */
+function viewOpinion(){
+  var o=miOpinion()||{tareas:{}};
+  function sc(name){var v=o[name];return '<div class="scale" role="radiogroup">'+[1,2,3,4,5].map(function(n){return '<label><input type="radio" name="'+name+'" value="'+n+'"'+(v===n?' checked':'')+'>'+n+'</label>'}).join('')+'</div>'}
+  function ck(name,label){return '<label class="check"><input type="checkbox" name="t_'+name+'"'+(o.tareas&&o.tareas[name]?' checked':'')+'><span>'+label+'</span></label>'}
+  function rd(name,val,label){return '<label class="chip" style="display:flex;gap:6px;align-items:center"><input type="radio" name="'+name+'" value="'+val+'"'+(o[name]===val?' checked':'')+'> '+label+'</label>'}
+  return '<div class="stack">'+banner()+'<a href="#mas" class="small">← Volver</a><div><h2>Tu opinión</h2><p class="muted">Prueba la app y cuéntanos cómo te fue. Son 8 preguntas, sin datos personales.</p></div>'
+  +'<form data-form="opinion" data-keep class="card stack" novalidate>'
+  +'<fieldset><legend>¿Con qué perfil probaste la app?</legend><div class="chips">'+rd('rol','propietario','Propietario o cuidador')+rd('rol','encontro','Encontré o vi una mascota')+rd('rol','veterinaria','Veterinaria o fundación')+rd('rol','otro','Otro')+'</div></fieldset>'
+  +'<fieldset><legend>¿Qué lograste hacer sin ayuda?</legend><div class="stack">'+ck('publicar','Publicar un reporte')+ck('buscar','Buscar una mascota con filtros')+ck('avistamiento','Registrar un avistamiento')+ck('cerrar','Actualizar un caso hasta el reencuentro')+'</div></fieldset>'
+  +'<fieldset><legend>¿Qué tan claro fue usarla? (1 nada, 5 muy claro)</legend>'+sc('claridad')+'</fieldset>'
+  +'<fieldset><legend>¿Qué tanta confianza te dio con tus datos? (1 poca, 5 mucha)</legend>'+sc('confianza')+'</fieldset>'
+  +'<fieldset><legend>¿Qué tan útil sería tener todo en un solo lugar? (1 nada, 5 muy útil)</legend>'+sc('utilidad')+'</fieldset>'
+  +'<fieldset><legend>¿Qué alertas preferirías?</legend><div class="chips">'+rd('alertas','barrio','Solo mi sector')+rd('alertas','cercanos','Sectores cercanos')+rd('alertas','municipio','Todo el municipio')+rd('alertas','ninguna','Ninguna')+'</div></fieldset>'
+  +'<fieldset><legend>¿La usarías o la recomendarías?</legend><div class="chips">'+rd('usaria','si','Sí')+rd('usaria','depende','Depende')+rd('usaria','no','No')+'</div></fieldset>'
+  +'<div class="field"><label for="op-com">¿Qué mejorarías primero?</label><textarea id="op-com" name="comentario" maxlength="500">'+esc(o.comentario||'')+'</textarea></div>'
+  +'<button class="btn" type="submit">'+(miOpinion()?'Actualizar mi opinión':'Enviar opinión')+'</button></form></div>';
+}
+
+/* moderación */
+function isAdminView(){return store.admin&&cloud()}
+function ownerContact(casoId){
+  for(var i=0;i<store.buzon.length;i++){var its=store.buzon[i].items;for(var j=0;j<its.length;j++){if(its[j].tipo==='contacto'&&its[j].casoId===casoId)return its[j].contacto}}
+  return '';
+}
+function viewMod(){
+  if(!isAdminView())return '<div class="stack">'+banner()+'<div class="card empty">'+IC.candado+'<h3>Solo para moderadores</h3><p>Este panel está disponible para quien administra la página.</p></div></div>';
+  var tabs=[['pendientes','Pendientes'],['mensajes','Mensajes'],['metricas','Métricas'],['opiniones','Opiniones'],['datos','Datos']];
+  var h='<div class="stack">'+banner()+'<a href="#mas" class="small">← Volver</a><h2>Panel de moderación</h2><div class="subtabs" role="tablist">'+tabs.map(function(t){return '<button type="button" class="chip" data-act="modtab" data-t="'+t[0]+'" aria-pressed="'+(ui.modTab===t[0])+'">'+t[1]+(t[0]==='pendientes'?' ('+store.casos.filter(function(c){return c.moderacion==='pendiente'}).length+')':'')+'</button>'}).join('')+'</div>';
+  if(ui.modTab==='pendientes')h+=modPendientes();
+  else if(ui.modTab==='mensajes')h+=modMensajes();
+  else if(ui.modTab==='metricas')h+=modMetricas();
+  else if(ui.modTab==='opiniones')h+=modOpiniones();
+  else h+=modDatos();
+  return h+'</div>';
+}
+function modPendientes(){
+  var p=store.casos.filter(function(c){return c.moderacion==='pendiente'}).sort(function(a,b){return Date.parse(a.creadoEn)-Date.parse(b.creadoEn)});
+  if(!p.length)return '<div class="card empty">'+IC.vacio+'<h3>Nada por revisar</h3><p>Los reportes nuevos aparecen aquí antes de publicarse.</p></div>';
+  return '<div class="list">'+p.map(function(c){var it=normCaso(c);return '<div class="card stack">'+cardItem(it)+'<p class="small muted">Revisa que no incluya teléfonos, direcciones exactas ni datos de terceros.</p><div class="row"><button class="btn sm" data-act="moderar" data-id="'+esc(c.id)+'" data-d="aprobado">Aprobar</button><button class="btn sm danger" data-act="moderar" data-id="'+esc(c.id)+'" data-d="rechazado">Rechazar</button></div></div>'}).join('')+'</div>';
+}
+function modMensajes(){
+  var msgs=[];
+  store.buzon.forEach(function(b){b.items.forEach(function(i){if(i.tipo==='mensaje')msgs.push(i)})});
+  msgs.sort(function(a,b){return Date.parse(b.ts)-Date.parse(a.ts)});
+  if(!msgs.length)return '<div class="card empty">'+IC.vacio+'<h3>Sin mensajes</h3><p>Aquí llegan los mensajes de “Contactar de forma segura”.</p></div>';
+  return '<p class="small muted">Tú haces de puente: avisa a la familia por WhatsApp y confirma con la persona que escribió. Los teléfonos nunca se publican.</p><div class="list">'+msgs.map(function(m){
+    var c=store.casos.filter(function(x){return x.id===m.casoId})[0],it=c?normCaso(c):null,dueno=ownerContact(m.casoId),hecho=!!handled[m.id];
+    var textoFam='Hola, desde Reencuentro Seguro: alguien escribió sobre tu caso ('+(it?titulo(it):'')+'). Mensaje: '+m.texto;
+    return '<div class="card stack"><div class="row"><b>'+(it?esc(titulo(it)):'Caso eliminado')+'</b><span class="sp"></span><span class="small muted">'+esc(rel(m.ts))+'</span>'+(hecho?'<span class="pill ok">Gestionado</span>':'')+'</div>'
+     +'<p>'+esc(m.texto)+'</p><p class="small muted">Celular de quien escribió: <b>'+esc(m.contacto||'—')+'</b> · Celular de la familia: <b>'+esc(dueno||'sin registrar')+'</b></p>'
+     +'<div class="row">'+(dueno&&telOk(dueno)?'<a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/'+telWa(dueno)+'?text='+encodeURIComponent(textoFam)+'">Avisar a la familia</a>':'')
+     +(m.contacto&&telOk(m.contacto)?'<a class="btn sm ghost" target="_blank" rel="noopener" href="https://wa.me/'+telWa(m.contacto)+'">Responder a quien escribió</a>':'')
+     +(hecho?'':'<button class="btn sm ghost" data-act="gestionado" data-id="'+esc(m.id)+'">Marcar gestionado</button>')+'</div></div>'}).join('')+'</div>';
+}
+function bar(label,n,max){return '<div class="bar"><span>'+esc(label)+'</span><span class="tr"><i style="width:'+(max?Math.round(n/max*100):0)+'%"></i></span><b>'+n+'</b></div>'}
+function modMetricas(){
+  var reales=store.casos.filter(function(c){return !c.ejemplo&&c.moderacion==='aprobado'}),av=store.avist.filter(function(v){return !v.ejemplo});
+  var ej=store.casos.filter(function(c){return c.ejemplo}).length+store.avist.filter(function(v){return v.ejemplo}).length;
+  var act=reales.filter(function(c){return INACTIVOS.indexOf(c.estado)<0}).length;
+  var reun=reales.filter(function(c){return c.estado==='reunido'}).length;
+  var upd=reales.filter(function(c){return Date.now()-Date.parse(c.creadoEn)>0&&((c.historial||[]).length>1||avistDe(c.id).length>0)}).length;
+  var horas=[];reales.forEach(function(c){var a=avistDe(c.id);if(a.length){var t=Math.min.apply(null,a.map(function(v){return Date.parse(v.creadoEn)}));horas.push((t-Date.parse(c.creadoEn))/3600000)}});
+  var tprom=horas.length?(horas.reduce(function(a,b){return a+b},0)/horas.length):null;
+  var usuarios={};reales.forEach(function(c){usuarios[c.creadoPor]=1});av.forEach(function(v){usuarios[v.creadoPor]=1});store.opiniones.forEach(function(o){if(o.creadoPor)usuarios[o.creadoPor]=1});
+  var k=function(v,l){return '<div class="stat"><b>'+v+'</b><span>'+l+'</span></div>'};
+  var porEstado={};reales.forEach(function(c){porEstado[c.estado]=(porEstado[c.estado]||0)+1});
+  var maxE=Math.max.apply(null,[1].concat(Object.keys(porEstado).map(function(e){return porEstado[e]})));
+  return '<div class="notice info small">Las métricas usan solo datos reales. Se excluyen '+ej+' registros de ejemplo.</div><div class="kpis">'
+   +k(reales.length,'casos publicados')+k(act,'casos activos')+k(av.length,'avistamientos')+k(reun,'reencuentros confirmados')
+   +k(reales.length?Math.round(upd/reales.length*100)+'%':'—','casos con novedades')+k(tprom==null?'—':(tprom<1?'<1 h':tprom.toFixed(1)+' h'),'tiempo a la 1.ª pista')+k(Object.keys(usuarios).length,'usuarios activos')+k(store.opiniones.length,'opiniones recibidas')+'</div>'
+   +'<section class="card stack"><h3>Casos por estado</h3><div class="bars">'+(Object.keys(porEstado).length?Object.keys(ESTADOS).filter(function(e){return porEstado[e]}).map(function(e){return bar(ESTADOS[e],porEstado[e],maxE)}).join(''):'<p class="muted">Aún no hay casos reales.</p>')+'</div></section>';
+}
+function modOpiniones(){
+  var os=store.opiniones.slice().sort(function(a,b){return Date.parse(b.creadoEn)-Date.parse(a.creadoEn)});
+  if(!os.length)return '<div class="card empty">'+IC.vacio+'<h3>Aún no hay opiniones</h3><p>Comparte la página con tus usuarios de prueba y pídeles completar “Tu opinión” desde Más.</p></div>';
+  var n=os.length,avg=function(f){var v=os.filter(function(o){return typeof o[f]==='number'});return v.length?(v.reduce(function(a,o){return a+o[f]},0)/v.length).toFixed(1):'—'};
+  var pct=function(t){return Math.round(os.filter(function(o){return o.tareas&&o.tareas[t]}).length/n*100)};
+  var cnt=function(f,v){return os.filter(function(o){return o[f]===v}).length};
+  return '<div class="kpis"><div class="stat"><b>'+n+'</b><span>participantes</span></div><div class="stat"><b>'+avg('claridad')+'</b><span>claridad (1-5)</span></div><div class="stat"><b>'+avg('confianza')+'</b><span>confianza (1-5)</span></div><div class="stat"><b>'+avg('utilidad')+'</b><span>utilidad (1-5)</span></div></div>'
+   +'<section class="card stack"><h3>Tareas completadas sin ayuda</h3><div class="bars">'+bar('Publicar',pct('publicar'),100)+bar('Buscar',pct('buscar'),100)+bar('Avistamiento',pct('avistamiento'),100)+bar('Cerrar caso',pct('cerrar'),100)+'</div><p class="small muted">Porcentaje de participantes. Meta del plan de validación: al menos 70 % en los flujos centrales.</p></section>'
+   +'<section class="card stack"><h3>Intención de uso</h3><p>Sí: '+cnt('usaria','si')+' · Depende: '+cnt('usaria','depende')+' · No: '+cnt('usaria','no')+'</p></section>'
+   +'<section class="card stack"><h3>Comentarios</h3><ul class="clean">'+os.filter(function(o){return o.comentario}).slice(0,12).map(function(o){return '<li>'+esc(o.comentario)+'</li>'}).join('')+'</ul></section>'
+   +'<button class="btn" data-act="csv">Descargar resultados (CSV)</button>';
+}
+function modDatos(){
+  var ej=store.casos.filter(function(c){return c.ejemplo}).length+store.avist.filter(function(v){return v.ejemplo}).length;
+  return '<section class="card stack"><h3>Datos de ejemplo</h3><p class="small muted">Sirven para mostrar la app antes de tener usuarios. No cuentan en las métricas. Actualmente hay '+ej+' registros de ejemplo.</p><div class="row"><button class="btn sm" data-act="cargarEj">Cargar ejemplos</button><button class="btn sm danger" data-act="borrarEj"'+(ej?'':' disabled')+'>Borrar ejemplos</button></div></section>'
+   +'<section class="card stack"><h3>Permisos</h3><p class="small muted">Para que tus usuarios de prueba publiquen y den su opinión, compártele la página con el nivel “Colaborador”. Con enlace público de solo lectura verán la demostración sin guardar datos.</p></section>';
+}
+
+/* ---------- render ---------- */
+var NAV=[['inicio','Casos',IC.lista],['mapa','Mapa',IC.mapa],['publicar','Publicar',IC.mas,'pub'],['alertas','Alertas',IC.alerta],['mas','Más',IC.menu]];
+function renderNav(){
+  var r=route().v,cur=r==='detalle'?'inicio':(['seguridad','privacidad','opinion','moderacion'].indexOf(r)>=0?'mas':r);
+  var n=alertasNuevas();
+  $('#nav').innerHTML=NAV.map(function(t){
+    return '<a class="tab'+(t[3]?' '+t[3]:'')+'" href="#'+t[0]+'"'+(cur===t[0]?' aria-current="page"':'')+'>'+t[2]+t[1]+(t[0]==='alertas'&&n?'<span class="badge-n" aria-label="'+n+' nuevas">'+n+'</span>':'')+'</a>';
+  }).join('');
+}
+function render(soft){
+  var r=route(),v=$('#view'),h;
+  if(r.v==='inicio')h=viewInicio();
+  else if(r.v==='detalle')h=viewDetalle(r.ref);
+  else if(r.v==='publicar')h=viewPublicar();
+  else if(r.v==='mapa')h=viewMapa();
+  else if(r.v==='alertas')h=viewAlertas();
+  else if(r.v==='mas')h=viewMas();
+  else if(r.v==='seguridad')h=viewSeguridad();
+  else if(r.v==='privacidad')h=viewPrivacidad();
+  else if(r.v==='opinion')h=viewOpinion();
+  else h=viewMod();
+  var y=window.scrollY;
+  v.innerHTML=h;
+  if(soft)window.scrollTo(0,y);
+  if(r.v==='publicar'){aplicarTipo();enlazarBotonPublicacion();}
+  renderNav();
+}
+function aplicarTipo(){
+  var f=$('#fpub');if(!f)return;
+  var t=f.elements.tipo.value||ui.pubTipo;ui.pubTipo=t;
+  f.querySelectorAll('[data-for]').forEach(function(el){el.hidden=el.getAttribute('data-for').split(' ').indexOf(t)<0});
+  $('#lbl-fecha').textContent=t==='perdida'?'¿Cuándo se perdió?':t==='encontrada'?'¿Cuándo la encontraste?':'¿Cuándo la viste?';
+  $('#lbl-senas').textContent=t==='avistamiento'?'¿Qué viste?':'Señas particulares visibles';
+}
+
+/* ---------- acciones ---------- */
+var ACT={
+  pub:function(el){ui.pubTipo=el.getAttribute('data-tipo')||'perdida';ui.pubFoto=null;ui.result=null},
+  chip:function(el){ui.f[el.getAttribute('data-k')]=el.getAttribute('data-v');render(true)},
+  sector:function(el){ui.f.sector=el.getAttribute('data-s');ui.f.estado='activos';location.hash='#inicio'},
+  form:function(el){ui.form=el.getAttribute('data-f')||null;ui.verif=false;render(true)},
+  confirmar:function(el){ui.confirm=el.getAttribute('data-c')||null;render(true)},
+  copiar:function(el){var t=el.getAttribute('data-t');var ok=function(){toast('Texto copiado')};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){toast('Selecciona y copia el texto manualmente')})}else toast('Selecciona y copia el texto manualmente')},
+  vistas:function(){prefs.visto=Date.now();LSset('rs_prefs_v1',prefs);render(true)},
+  modtab:function(el){ui.modTab=el.getAttribute('data-t');render(true)},
+  gestionado:function(el){handled[el.getAttribute('data-id')]=1;LSset('rs_mod_handled',handled);render(true)},
+  eliminar:async function(el){
+    var id=el.getAttribute('data-id');
+    try{await delDoc('casos',id);ui.confirm=null;toast('Reporte eliminado');location.hash='#inicio'}catch(e){toast(errMsg(e))}
+  },
+  moderar:async function(el){
+    var id=el.getAttribute('data-id'),d=el.getAttribute('data-d'),c=store.casos.filter(function(x){return x.id===id})[0];if(!c)return;
+    try{await putCaso(Object.assign({},c,{moderacion:d}));toast(d==='aprobado'?'Reporte aprobado y publicado':'Reporte rechazado')}catch(e){toast(errMsg(e))}
+  },
+  cargarEj:async function(){
+    var d=realizarDemo();
+    try{
+      for(var i=0;i<d.casos.length;i++){d.casos[i].moderacion='aprobado';await putCaso(d.casos[i])}
+      for(var j=0;j<d.avist.length;j++){await putAv(d.avist[j])}
+      toast('Ejemplos cargados');
+    }catch(e){toast(errMsg(e))}
+  },
+  borrarEj:async function(){
+    try{
+      var cs=store.casos.filter(function(c){return c.ejemplo}),avs=store.avist.filter(function(a){return a.ejemplo});
+      for(var i=0;i<cs.length;i++){await delDoc('casos',cs[i].id)}
+      for(var j=0;j<avs.length;j++){await delDoc('avistamientos',avs[j].id)}
+      toast('Ejemplos eliminados');
+    }catch(e){toast(errMsg(e))}
+  },
+  csv:async function(){
+    var cols=['fecha','rol','publicar','buscar','avistamiento','cerrar','claridad','confianza','utilidad','alertas','usaria','comentario'];
+    var rows=[cols.join(',')].concat(store.opiniones.map(function(o){var t=o.tareas||{};return [o.creadoEn,o.rol,t.publicar?1:0,t.buscar?1:0,t.avistamiento?1:0,t.cerrar?1:0,o.claridad,o.confianza,o.utilidad,o.alertas,o.usaria,o.comentario].map(csvCell).join(',')}));
+    try{
+      var blob=new Blob(['﻿'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+      var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='opiniones-reencuentro-seguro.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+      toast('Archivo descargado');
+    }catch(e){toast('No se pudo descargar el archivo.')}
+  }
+};
+document.addEventListener('click',function(e){
+  /* pulsar "Publicar" estando ya en #publicar (p. ej. en la pantalla de resultado) vuelve a abrir un formulario limpio */
+  var lp=e.target.closest&&e.target.closest('a[href="#publicar"]');
+  if(lp&&location.hash==='#publicar'){ui.result=null;ui.pubFoto=null;ui.form=null;render();window.scrollTo(0,0)}
+  var logout=e.target.closest('[data-act="logout"]');if(logout){e.preventDefault();api('/auth/logout',{method:'POST',body:'{}'}).finally(function(){location.reload()});return}
+  var el=e.target.closest&&e.target.closest('[data-act]');if(!el)return;
+  var fn=ACT[el.getAttribute('data-act')];if(fn)fn(el,e);
+});
+document.addEventListener('input',function(e){
+  var t=e.target;if(t.getAttribute&&t.getAttribute('data-filter')==='q'){ui.f.q=t.value;var l=$('#lista');if(l)l.innerHTML=listaHTML()}
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.getAttribute&&t.getAttribute('data-filter')&&t.getAttribute('data-filter')!=='q'){ui.f[t.getAttribute('data-filter')]=t.value;var l=$('#lista');if(l)l.innerHTML=listaHTML();return}
+  if(t.name==='tipo'&&t.form&&t.form.id==='fpub'){aplicarTipo();return}
+  if(t.id==='es-sel'){var v=$('#verif');if(v)v.hidden=t.value!=='reunido';return}
+  if(t.id==='p-foto'){
+    var f=t.files&&t.files[0];if(!f)return;
+    comprimir(f).then(function(d){ui.pubFoto=d;$('#foto-prev').innerHTML='<img class="photo-prev" src="'+d+'" alt="Vista previa">'},function(){toast('No pudimos leer esa foto. Prueba con otra.')});
+  }
+});
+document.addEventListener('submit',async function(e){
+  var form=e.target;if(!form.getAttribute||!form.getAttribute('data-form'))return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  await manejarSubmit(form);
+},true);
+
+function enlazarBotonPublicacion(){
+  var form=$('#fpub');if(!form)return;
+  var btn=form.querySelector('button[type=submit]');if(!btn)return;
+  btn.dataset.linked='1';
+}
+
+/* aviso flotante */
+var toastTimer=null;
+function toast(msg){
+  var el=$('#toast');if(!el)return;
+  el.textContent=msg;el.hidden=false;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){el.hidden=true},4000);
+}
+/* error visible junto al campo; devuelve undefined para poder usar "return err(...)" */
+function err(form,msg,campo){
+  form.querySelectorAll('.err-msg').forEach(function(n){n.remove()});
+  var inp=campo?form.querySelector('[name="'+campo+'"]'):null;
+  if(inp){
+    var cont=inp.closest('.field')||inp.closest('label')||inp.parentNode;
+    var s=document.createElement('span');
+    s.className='hint err-msg';s.setAttribute('role','alert');s.style.color='var(--lost)';s.style.fontWeight='600';s.textContent=msg;
+    cont.appendChild(s);
+    try{inp.focus()}catch(e){}
+  }
+  toast(msg);
+}
+/* reduce la foto (máx. 900 px, JPEG) antes de guardarla */
+function comprimir(file){
+  return new Promise(function(ok,fail){
+    if(!file||!/^image\//.test(file.type))return fail(new Error('No es una imagen'));
+    var fr=new FileReader();
+    fr.onerror=function(){fail(new Error('No se pudo leer'))};
+    fr.onload=function(){
+      var img=new Image();
+      img.onerror=function(){fail(new Error('Imagen no válida'))};
+      img.onload=function(){
+        var max=900,w=img.width,h=img.height,k=Math.min(1,max/Math.max(w,h));
+        var c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        ok(c.toDataURL('image/jpeg',0.75));
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function fd(form){
+  var o={};
+  new FormData(form).forEach(function(v,k){if(typeof v==='string')o[k]=v});
+  return o;
+}
+
+async function manejarSubmit(form){
+  var kind=form.getAttribute('data-form'),d=fd(form),btn=form.querySelector('button[type=submit]');
+  if(btn&&btn.disabled)return;
+  try{
+    if(btn)btn.disabled=true;
+    toast(kind==='publicar'?'Guardando reporte...':'Guardando cambios...');
+    if(kind==='publicar')await enviarPublicar(form,d);
+    else if(kind==='avist')await enviarAvist(form,d);
+    else if(kind==='contacto')await enviarContacto(form,d);
+    else if(kind==='estado')await enviarEstado(form,d);
+    else if(kind==='opinion')await enviarOpinion(form,d);
+    else if(kind==='prefs')guardarPrefs(form);
+  }catch(x){toast(errMsg(x))}
+  finally{if(btn&&document.body.contains(btn))btn.disabled=false}
+}
+
+async function enviarPublicar(form,d){
+  var t=d.tipo||'perdida',faltan=[],campos=[];
+  if(!d.color){faltan.push('color');campos.push('color')}
+  if(!d.fecha){faltan.push('fecha');campos.push('fecha')}
+  else if(d.fecha>hoy()){faltan.push('fecha futura');campos.push('fecha')}
+  if(d.municipio==='Armenia'&&!d.sector&&!d.barrio){faltan.push('sector o barrio');campos.push('sector')}
+  if(t!=='avistamiento'&&!telOk(d.contacto)){faltan.push('celular válido (10 dígitos, empieza por 3)');campos.push('contacto')}
+  if(!d.acepto){faltan.push('casilla de autorización');campos.push('acepto')}
+  if(faltan.length){err(form,'Falta completar: '+faltan.join(', '),campos[0]);return}
+  var now=nowISO(),id=nid();
+  if(t==='avistamiento'){
+    var a={id:id,casoId:null,especie:d.especie,color:d.color,tamano:d.tamano||'',nota:(d.senas||'').trim(),municipio:d.municipio,sector:d.municipio==='Armenia'?d.sector:'',barrio:(d.barrio||'').trim(),fecha:d.fecha,hora:d.hora||'',creadoPor:store.uid,creadoEn:now};
+    await putAv(a);
+    ui.result={ref:'vista-'+id,pendiente:false};
+  }else{
+    var estado=t==='encontrada'&&d.resguardo?'resguardo':'nuevo';
+    var c={id:id,tipo:t,especie:d.especie,nombre:t==='perdida'?(d.nombre||'').trim():'',color:d.color,tamano:d.tamano||'',senas:(d.senas||'').trim(),municipio:d.municipio,sector:d.municipio==='Armenia'?d.sector:'',barrio:(d.barrio||'').trim(),
+      fecha:d.fecha,hora:d.hora||'',foto:ui.pubFoto||null,estado:estado,moderacion:cloud()?'pendiente':'aprobado',creadoPor:store.uid,creadoEn:now,historial:[{estado:estado,ts:now,nota:'Reporte publicado'}]};
+    await putCaso(c);
+    var q=[];
+    q.push(putBuzon({tipo:'contacto',casoId:id,contacto:digits(d.contacto)}));
+    await Promise.all(q);
+    if(t==='perdida'&&(d.privada||'').trim())await putBuzon({tipo:'senaPrivada',casoId:id,texto:d.privada.trim()});
+    ui.result={ref:'caso-'+id,pendiente:c.moderacion==='pendiente'};
+  }
+  ui.pubFoto=null;
+  render();window.scrollTo(0,0);
+}
+async function enviarAvist(form,d){
+  if(!d.sector&&!(d.barrio||'').trim())return err(form,'Indica el sector donde la viste.','sector');if(d.fecha&&d.fecha>hoy())return err(form,'La fecha no puede ser futura.','fecha');
+  var c=store.casos.filter(function(x){return x.id===d.casoId})[0];if(!c)return;
+  var now=nowISO();
+  await putAv({id:nid(),casoId:c.id,especie:c.especie,color:c.color,tamano:c.tamano||'',nota:(d.nota||'').trim(),municipio:c.municipio,sector:d.sector,barrio:(d.barrio||'').trim(),fecha:d.fecha||hoy(),hora:d.hora||'',creadoPor:store.uid,creadoEn:now});
+  if(c.estado==='nuevo'||c.estado==='en_busqueda'){
+    var h=(c.historial||[]).concat([{estado:'avistamiento',ts:now,nota:'Avistamiento reportado en '+(d.sector||'la zona')}]);
+    try{await putCaso(Object.assign({},c,{estado:'avistamiento',historial:h}))}catch(e){}
+  }
+  ui.form=null;toast('Avistamiento registrado. ¡Gracias por ayudar!');render(true);
+}
+async function enviarContacto(form,d){
+  if(!(d.mensaje||'').trim())return err(form,'Escribe tu mensaje.','mensaje');
+  if(!telOk(d.contacto))return err(form,'Escribe un celular colombiano válido de 10 dígitos.','contacto');
+  if(!d.acepto)return err(form,'Debes autorizar el uso de tu celular.','acepto');
+  await putBuzon({tipo:'mensaje',casoId:d.casoId,texto:d.mensaje.trim(),contacto:digits(d.contacto)});
+  ui.form=null;toast('Mensaje enviado al moderador. Te contactarán si hay novedades.');render(true);
+}
+async function enviarEstado(form,d){
+  var c=store.casos.filter(function(x){return x.id===d.id})[0];if(!c)return;
+  if(d.estado==='reunido'&&!(d.v1&&d.v2&&d.v3))return err(form,'Confirma las tres verificaciones antes de marcar el reencuentro.','v1');
+  var h=(c.historial||[]).concat([{estado:d.estado,ts:nowISO(),nota:(d.nota||'').trim()}]);
+  await putCaso(Object.assign({},c,{estado:d.estado,historial:h}));
+  ui.form=null;toast('Caso actualizado');render(true);
+}
+async function enviarOpinion(form,d){
+  if(!d.claridad||!d.confianza||!d.utilidad)return err(form,'Responde las tres preguntas con escala del 1 al 5.');
+  var o={rol:d.rol||'otro',tareas:{publicar:!!d.t_publicar,buscar:!!d.t_buscar,avistamiento:!!d.t_avistamiento,cerrar:!!d.t_cerrar},claridad:+d.claridad,confianza:+d.confianza,utilidad:+d.utilidad,alertas:d.alertas||'',usaria:d.usaria||'',comentario:(d.comentario||'').trim().slice(0,500),creadoPor:store.uid,creadoEn:nowISO()};
+  await putOpinion(o);
+  toast('¡Gracias! Tu opinión nos ayuda a mejorar.');location.hash='#mas';
+}
+function guardarPrefs(form){
+  var sec=[],esp=[];
+  form.querySelectorAll('input[name=sec]:checked').forEach(function(i){sec.push(i.value)});
+  form.querySelectorAll('input[name=esp]:checked').forEach(function(i){esp.push(i.value)});
+  if(!esp.length)return toast('Elige al menos una especie.');
+  prefs.sectores=sec;prefs.especies=esp;LSset('rs_prefs_v1',prefs);toast('Preferencias guardadas');render(true);
+}
+
+boot();
+})();
+</script>
+
+</body></html>

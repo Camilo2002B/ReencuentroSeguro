@@ -1,0 +1,5 @@
+CREATE TABLE users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT NOT NULL UNIQUE,password_hash TEXT NOT NULL,is_admin INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL);
+CREATE TABLE casos(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(owner_id) REFERENCES users(id));
+CREATE TABLE avistamientos(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(owner_id) REFERENCES users(id));
+CREATE TABLE mensajes(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(owner_id) REFERENCES users(id));
+CREATE TABLE opiniones(owner_id TEXT PRIMARY KEY,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(owner_id) REFERENCES users(id));
